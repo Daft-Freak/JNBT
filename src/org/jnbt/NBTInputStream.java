@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.InflaterInputStream;
 
 /**
  * <p>
@@ -64,7 +65,9 @@ import java.util.zip.GZIPInputStream;
  * 
  */
 public final class NBTInputStream implements Closeable {
-	
+	public static enum Compression {
+	    Gzip, Deflate;
+	}
 	/**
 	 * The data input stream.
 	 */
@@ -106,6 +109,17 @@ public final class NBTInputStream implements Closeable {
 	public NBTInputStream(final DataInputStream is) {
                 this.is = is;
         }
+	
+	// used by tectonicus
+	public NBTInputStream(InputStream is, Compression compression) throws IOException {
+		if (compression == Compression.Gzip) {
+			this.is = new DataInputStream(new GZIPInputStream(is));
+		} else if(compression == Compression.Deflate) {
+			this.is = new DataInputStream(new InflaterInputStream(is));
+		} else {
+			throw new IOException("Unknown compression type:" + compression);
+		}
+	}
 	
 	/**
 	 * Reads an NBT tag from the stream.
